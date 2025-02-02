@@ -2,38 +2,39 @@
 // Created by Lyubomir on 1/28/2025.
 //
 
-using namespace std;
-
 #include <fstream>
 #include <iostream>
-#include <iterator>
+
+constexpr int START_POSITION = 20000;
 
 int main() {
     // Stream the file in binary
-    ifstream input( "picture.bmp", ios::binary );
+    std::ifstream input( "picture.bmp", std::ios::binary );
 
-    // Start position is 20000. The letter W
-    unsigned long symbolPosition = 20000;
+    if (!input.is_open()) {
+        std::cerr << "Error opening file" << std::endl;
+        return 1;
+    }
 
+    unsigned long symbolPosition = START_POSITION;
     // Last position in the input
-    const long long endPosition = input.seekg(0, ios::end).tellg();
+    const long long endPosition = input.seekg(0, std::ios::end).tellg();
 
     while (symbolPosition < endPosition) {
         // First byte is the symbol
-        const unsigned char res = input.seekg(symbolPosition, ios::beg ).get();
+        const unsigned char res = input.seekg(symbolPosition, std::ios::beg ).get();
 
         if (res == '\0') {
             break;
         }
 
-        cout << res;
+        std::cout << res;
 
-        // The next symbol position is the offset made by summing the next 3 bytes
-        // The task explains the second and third bytes need to be multiplied by 0x100
-        // and 0x10000 respectively
-        symbolPosition = input.seekg( symbolPosition + 1, ios::beg ).get()
-        + input.seekg( symbolPosition + 2, ios::beg ).get() * 0x100
-        + input.seekg( symbolPosition + 3, ios::beg ).get() * 0x10000;
+        // We shift the first byte to the left 16 bits, the second 8 and the third 0
+        // This is because the number needs to be little endian
+        symbolPosition = (input.seekg( symbolPosition + 3, std::ios::beg ).get() << 16) |
+        (input.seekg( symbolPosition + 2, std::ios::beg ).get() << 8) |
+        input.seekg( symbolPosition + 1, std::ios::beg ).get();
     }
 
     return 0;

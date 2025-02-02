@@ -2,58 +2,38 @@
 // Created by Lyubomir on 1/28/2025.
 //
 
+using namespace std;
+
 #include <fstream>
 #include <iostream>
 #include <iterator>
-#include <vector>
-#include <sstream>
-#include <format>
 
-int decodeLetters(const int startingPosition, std::vector<unsigned char> buffer)
-{
-    std::stringstream ss;
-
-    ss << std::hex
-    << (buffer.at(startingPosition + 3))
-    << (buffer.at(startingPosition + 2))
-    << (buffer.at(startingPosition + 1));
-
-    return std::stoi("0x" + ss.str(), nullptr, 16);
-}
-
-int readFromFile(const int startingPosition, std::ifstream &input)
-{
-    std::stringstream ss;
-
-    ss << std::hex
-    << input.seekg( startingPosition + 3, std::ios::beg ).get()
-    << input.seekg( startingPosition + 2, std::ios::beg ).get()
-    << input.seekg( startingPosition + 1, std::ios::beg ).get()
-    << std::endl;
-
-
-    return std::stoi("0x" + ss.str(), nullptr, 16);
-}
-
-int main()
-{
-    std::ifstream input( "picture.bmp", std::ios::binary );
-
-    // // Copies all data into buffer
-    // const std::vector<unsigned char> buffer(
-    //     std::istreambuf_iterator<char>(input), {}
-    // );
+int main() {
+    // Stream the file in binary
+    ifstream input( "picture.bmp", ios::binary );
 
     // Start position is 20000. The letter W
-    int startingPosition = 20000;
+    unsigned long symbolPosition = 20000;
 
-    while (startingPosition < 999999999999) {
-        const unsigned char res = input.seekg(startingPosition, std::ios::beg ).get();
+    // Last position in the input
+    const long long endPosition = input.seekg(0, ios::end).tellg();
 
-        // std::cout << startingPosition << std::endl;
-        std::cout << res;
+    while (symbolPosition < endPosition) {
+        // First byte is the symbol
+        const unsigned char res = input.seekg(symbolPosition, ios::beg ).get();
 
-        startingPosition = readFromFile(startingPosition, input);
+        if (res == '\0') {
+            break;
+        }
+
+        cout << res;
+
+        // The next symbol position is the offset made by summing the next 3 bytes
+        // The task explains the second and third bytes need to be multiplied by 0x100
+        // and 0x10000 respectively
+        symbolPosition = input.seekg( symbolPosition + 1, ios::beg ).get()
+        + input.seekg( symbolPosition + 2, ios::beg ).get() * 0x100
+        + input.seekg( symbolPosition + 3, ios::beg ).get() * 0x10000;
     }
 
     return 0;

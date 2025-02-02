@@ -9,7 +9,7 @@ constexpr int START_POSITION = 20000;
 
 int main() {
     // Stream the file in binary
-    std::ifstream input( "picture.bmp", std::ios::binary );
+    std::ifstream input( "../picture.bmp", std::ios::binary );
 
     if (!input.is_open()) {
         std::cerr << "Error opening file" << std::endl;
